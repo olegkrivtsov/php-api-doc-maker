@@ -1,0 +1,9 @@
+{
+    "require": {
+        "cebe/markdown": "dev-master",
+        "nikic/php-parser": "dev-master"
+    },
+    "autoload": {
+        "psr-4": {"PhpApiDocMaker\\": "src/PhpApiDocMaker"}
+    }
+}

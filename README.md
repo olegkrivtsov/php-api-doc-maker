@@ -1,2 +1,3 @@
-# php-api-doc-maker
-A Simple Yet Powerful PHP API documentation generator
+# PHP API Documentation Maker
+
+A simple yet powerful PHP API documentation generator.
