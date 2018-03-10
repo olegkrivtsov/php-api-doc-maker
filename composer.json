@@ -1,7 +1,8 @@
 {
     "require": {
         "cebe/markdown": "dev-master",
-        "nikic/php-parser": "dev-master"
+        "nikic/php-parser": "dev-master",
+        "phpdocumentor/reflection-docblock": "^4.3"
     },
     "autoload": {
         "psr-4": {"PhpApiDocMaker\\": "src/PhpApiDocMaker"}

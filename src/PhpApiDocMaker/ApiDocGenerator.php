@@ -1,27 +1,21 @@
 <?php
 namespace PhpApiDocMaker;
 
-use PhpParser\Error;
-use PhpParser\NodeDumper;
-use PhpParser\ParserFactory;
-use PhpParser\Node;
-use PhpParser\Node\Stmt\Class_;
-use PhpParser\Node\Stmt\Namespace_;
-use PhpParser\Node\Stmt\UseUse;
-use PhpParser\NodeTraverser;
-use PhpParser\NodeVisitorAbstract;
+use PhpApiDocMaker\PhpRenderer;
+use PhpApiDocMaker\ClassInfoExtractor;
+use PhpApiDocMaker\ComponentInfoExtractor;
 
 class ApiDocGenerator
 {
-    private $optVerbose = false;
-    
     private $srcDir;
     
     private $outDir;
     
-    private $phpRenderer;
+    private $componentInfoExtractor;
     
-    private $phpParser;
+    private $classInfoExtractor;
+    
+    private $phpRenderer;
     
     private $projectProps;
     
@@ -31,16 +25,29 @@ class ApiDocGenerator
     
     private $warnings = [];
     
-    public function __construct()
+    private $components = [];
+    
+    private $classIndex = [];
+    
+    /**
+     * Logger.
+     * @var type 
+     */
+    private $logger;
+    
+    /**
+     * Constructor.
+     */
+    public function __construct($verbose = false)
     {
+        $this->logger = new Logger($verbose);
+        $this->componentInfoExtractor = new ComponentInfoExtractor($this->logger);
+        $this->classInfoExtractor = new ClassInfoExtractor($this->logger);
         $this->phpRenderer = new PhpRenderer();
-        
-        $this->phpParser = (new ParserFactory)->create(ParserFactory::PREFER_PHP7);
     }
     
     /**
      * Returns the list of warnings.
-     * @return type
      */
     public function getWarnings() 
     {
@@ -48,21 +55,11 @@ class ApiDocGenerator
     }
     
     /**
-     * Adds a message to log.
-     */
-    protected function log($msg)
-    {
-        if ($this->optVerbose)
-            echo $msg;
-    }
-    
-    /**
      * Generates the API documentation.
      */
-    public function generate($srcDir, $optVerbose)
+    public function generate($srcDir)
     {
         $this->srcDir = $srcDir;
-        $this->optVerbose = $optVerbose;
         
         // Append slash to dir name, if not exists.
         if(substr($srcDir, -1)!='/')
@@ -72,12 +69,10 @@ class ApiDocGenerator
         if(!is_dir($srcDir))
             throw new \Exception("Passed argument is not a directory: $srcDir\n");
         
-        $this->log("Starting API doc generation\n");
+        $this->logger->log("Starting API doc generation\n");
         
         // Save directory name.
         $this->srcDir = $srcDir;
-        
-        echo $srcDir;
         
         $this->outDir = $srcDir . 'html/';
         
@@ -87,12 +82,15 @@ class ApiDocGenerator
         // Process components.
         $this->processComponents();
         
+        // Generate index.html
+        $this->generateIndex();
+        
         // Generate sitemap.xml.
         $this->generateSiteMap();
         
         // Get list of asset files
         $themeAssetsDir = 'data/theme/default/assets';
-        $assetFiles = $this->getDirContents($themeAssetsDir); 
+        $assetFiles = Utils::getDirContents($themeAssetsDir); 
         
         foreach ($assetFiles as $fileName) {
             $dstFileName = substr($fileName, strlen($themeAssetsDir));
@@ -100,7 +98,7 @@ class ApiDocGenerator
             $this->filesToCopy[$fileName] = $dstFileName;
         }
         
-        $faviconImage = $this->bookDir . 'manuscript/favicon.ico';
+        $faviconImage = $this->srcDir . 'favicon.ico';
         if (is_readable($faviconImage)) {
             $this->filesToCopy[$faviconImage] = $this->outDir . 'favicon.ico';
         }
@@ -114,7 +112,7 @@ class ApiDocGenerator
      */
     protected function getProjectProps() 
     {
-        $this->log("Reading php-api-doc-maker.json file\n");
+        $this->logger->log("Reading " . $this->srcDir . "php-api-doc-maker.json file\n");
         
         $fileName = $this->srcDir . 'php-api-doc-maker.json';
         
@@ -157,13 +155,155 @@ class ApiDocGenerator
         
         $this->projectProps = array_merge($defaults, $projectProps);
     }
+            
+    /**
+     * Collects information about each component and extracts PHP class information from
+     * source files.
+     */
+    private function processComponents()
+    {
+        $this->logger->log("Processing components...\n");
+        
+        foreach ($this->projectProps['components'] as $componentDir) {
+            
+            $this->logger->log("Processing component " . $componentDir . "\n");
+            
+            $componentInfo = $this->componentInfoExtractor->getComponentInfo($this->srcDir, $componentDir);
+            
+            $classes = $this->classInfoExtractor->extractPhpClassesForComponent($componentInfo['src_dir']);
+            
+            $componentInfo['classes'] = $classes;
+            
+            $fileTree = $this->componentInfoExtractor->getComponentFileTree($componentInfo['namespace'], $componentInfo['src_dir'], $componentInfo['src_dir']);
+            
+            $componentInfo['file_tree'] = $fileTree;
+            
+            $this->components[$componentInfo['name']] = $componentInfo;
+            
+            $this->generateComponentHtml($componentInfo);
+            
+            foreach ($componentInfo['classes'] as $className=>$classInfo) {
+                $this->generateClassHtml($className, $classInfo);
+            }
+        }
+    }
+    
+    /**
+     * Generates index.html file.
+     */
+    protected function generateIndex()
+    {
+        // Generate index.html
+        
+        $vars = [
+            'components' => $this->components,
+            'projectProps' => $this->projectProps
+        ];
+        
+        $this->phpRenderer->clearVars();
+        $content = $this->phpRenderer->render("data/theme/default/layout/index.php", $vars);
+        
+        $html = $this->renderMainLayout($content, null);
+        
+        $outFile = $this->outDir . "index.html";
+        
+        $this->logger->log("Generating index file: $outFile\n");
+        
+        file_put_contents($outFile, $html);
+        
+        array_unshift($this->siteUrls, [$this->projectProps['website'] . '/index.html', 1.0]);
+    }
+    
+    /**
+     * Generates component HTML file.
+     */
+    protected function generateComponentHtml($componentInfo)
+    {
+        $vars = [
+            'component' => $componentInfo,
+            'projectProps' => $this->projectProps,
+            'dirPrefix' => '../../',
+        ];
+        
+        $this->phpRenderer->clearVars();
+        $content = $this->phpRenderer->render("data/theme/default/layout/component.php", $vars);
+        
+        $html = $this->renderMainLayout($content, 'Component ' . $componentInfo['name'], '../../');
+        
+        $outFile = $this->outDir . "components/" . $componentInfo['name'] . ".html";
+        
+        $this->logger->log("Generating component HTML file: $outFile\n");
+        
+        if(!is_dir(dirname($outFile))) {
+            mkdir(dirname($outFile), 0775, true);
+        }
+        
+        file_put_contents($outFile, $html);
+        
+        array_unshift($this->siteUrls, [$this->projectProps['website'] . '/index.html', 1.0]);
+    }
+    
+    protected function generateClassHtml($className, $classInfo)
+    {
+        $outFile = $this->outDir . 'classes/' . str_replace('\\', '/', $className) . '.html';
+        
+        $this->logger->log("Generating class HTML file: $outFile\n");
+        
+        $nameParts = explode('\\', $className);
+        
+        $shortClassName = $nameParts[count($nameParts)-1];
+        
+        $dirPrefix = str_repeat('../', count($nameParts));
+        
+        $vars = [
+            'className' => $shortClassName,
+            'fullyQualifiedClassName' => $className,
+            'classInfo' => $classInfo,
+            'projectProps' => $this->projectProps,
+            'dirPrefix' => '../../',
+        ];
+        
+        $this->phpRenderer->clearVars();
+        $content = $this->phpRenderer->render("data/theme/default/layout/class.php", $vars);
+        
+        $html = $this->renderMainLayout($content, 'Class ' . $className, $dirPrefix);
+                
+        if(!is_dir(dirname($outFile))) {
+            mkdir(dirname($outFile), 0775, true);
+        }
+        
+        file_put_contents($outFile, $html);
+        
+        array_unshift($this->siteUrls, [$this->projectProps['website'] . 'index.html', 1.0]);
+    }
+    
+    /**
+     * Renders main layout.
+     */
+    protected function renderMainLayout($content, $pageTitle, $dirPrefix = '', $langCode = 'en')
+    {
+        $vars = [
+            'title' => $this->projectProps['title'],
+            'keywords' => implode(',', $this->projectProps['keywords']),
+            'pageTitle' => $pageTitle,
+            'copyright' => $this->projectProps['copyright'],
+            'links' => $this->projectProps['links'],
+            'content' => $content,
+            'dirPrefix' => $dirPrefix,
+            'projectProps' => $this->projectProps
+        ];
+                
+        $html = $this->phpRenderer->render("data/theme/default/layout/main.php", $vars);
+        
+        return $html;
+    }
     
     /**
      * Generates the sitemap.xml file.
      */
     protected function generateSiteMap()
     {
-        $this->log("Generating sitemap.xml\n");
+        $this->logger->log("Generating sitemap.xml\n");
         
         $baseURL = $this->projectProps['website'];
         $siteMapGenerator = new SitemapGenerator($baseURL, $this->outDir);
@@ -181,7 +321,7 @@ class ApiDocGenerator
      */
     protected function copyFiles()
     {
-        $this->log("Copying files\n");
+        $this->logger->log("Copying files\n");
         
         $count = 0;
         foreach ($this->filesToCopy as $srcFile=>$dstFile) {
@@ -189,129 +329,14 @@ class ApiDocGenerator
                 mkdir(dirname($dstFile), 0775, true);
             if(!is_readable($srcFile)) {
                 $this->warnings[] = 'Failed to copy file: ' . $srcFile;
-                $this->log('Failed to copy file: ' . $srcFile . "\n");
+                $this->logger->log('Failed to copy file: ' . $srcFile . "\n");
             } else if(copy($srcFile, $dstFile)) {
-                $this->log("Copied file " . $srcFile . " to " . $dstFile . "\n");
+                $this->logger->log("Copied file " . $srcFile . " to " . $dstFile . "\n");
                 $count ++;
             }
         }
         
-        $this->log("$count files copied.\n");
-    }
-    
-    /**
-     * Recursively scans directory for files and subdirectories. 
-     */
-    private function getDirContents($dir, &$results = array())
-    {
-        $files = scandir($dir);
-
-        foreach($files as $key => $value){
-            $path = $dir.DIRECTORY_SEPARATOR.$value;
-            if(!is_dir($path)) {
-                $results[] = $path;
-            } else if($value != "." && $value != "..") {
-                $this->getDirContents($path, $results);                
-            }
-        }
-
-        return $results;
-    }
-    
-    private function processComponents()
-    {
-        foreach ($this->projectProps['components'] as $componentDir) {
-            $classes = $this->extractPhpClassesForComponent($this->srcDir.'vendor/'.$componentDir);
-        }
-    }
-    
-    /**
-     * Scans component directory and extracts information about all PHP classes found in it.
-     */
-    private function extractPhpClassesForComponent($dir) 
-    {
-        $files = $this->getDirContents($dir);
-        
-        $info = [
-            'namespace' => null,
-            'uses' => [],
-            'classes' => [],
-        ];
-        
-        foreach ($files as $file) {
-        
-            $this->log("Parsing PHP file: $file");
-            
-            $code = file_get_contents($file);
-            
-            try {
-                $ast = $this->phpParser->parse($code);
-   
-                $traverser = new NodeTraverser();
-                
-                $visitor = new class extends NodeVisitorAbstract {
-                    
-                    public $namespace = null;
-                    
-                    public $uses = [];
-                    
-                    public $classes = [];
-                    
-                    public function enterNode(Node $node) {
-                        
-                        if ($node instanceof Namespace_) {
-                            $this->namespace = implode('\\', $node->name->parts);
-                        }
-                        
-                        if ($node instanceof UseUse) {
-                            $className = implode('\\', $node->name->parts);
-                            $alias = $node->alias?$node->alias:$className;
-                            $this->uses[$alias] = $className;
-                        }
-                        
-                        if ($node instanceof Class_) {
-                            $classInfo = [];
-                            
-                            $classInfo['name'] = $this->namespace . '\\' . $node->name->name;
-                            $classInfo['extends'] = [];
-                            $classInfo['implements'] = [];
-                            
-                            if (is_array($node->extends)) {
-                                foreach ($node->extends as $extends) {
-                                    $classInfo['extends'][] = implode('\\', $extends->parts);
-                                }
-                            }
-                            
-                            if (is_array($node->implements)) {
-                                foreach ($node->implements as $implements) {
-                                    $classInfo['implements'][] = implode('\\', $implements->parts);
-                                }
-                            }
-                                    
-                            $this->classes[] = $classInfo;
-                        }
-                    }
-                };
-                
-                $traverser->addVisitor($visitor);
-
-                $ast = $traverser->traverse($ast);
-
-                $info['uses'] = $visitor->uses;
-                $info['namespace'] = $visitor->namespace;
-                $info['classes'] = $visitor->classes;
-                
-                
-            } catch (Error $error) {
-                $this->log("PHP parse error: {$error->getMessage()} in file $file");
-            }
-
-            print_r($info);
-            exit;
-            
-        }
-        
-        return $classes;
+        $this->logger->log("$count files copied.\n");
     }
 }
 

@@ -1,27 +1,28 @@
-<div class="language-selection">
-
-    <?php 
-    foreach ($this->languages as $firstLangCode=>$firstLangName) { break; }
-    ?>
+<h1>Components</h1>
     
-    <h1>Read this book in:</h1>
-    
-    <ul class="language-list">
-    <?php foreach ($this->languages as $langCode=>$langTitle): ?>
-        <li>
-            <a href="<?= $langCode . '/toc.html' ?>"><?= $langTitle ?></a>
-        </li>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Version</th>
+        </tr>
+    </thead>
+    <tbody>
+    <?php foreach ($this->components as $component): ?>
+    <tr>
+        <td>
+            <a href="components/<?= $component['name'].'.html' ?>">
+                <?= $component['namespace'] ?>
+            </a>
+        </td>
+        <td>
+            <?= $component['description'] ?>
+        </td>
+        <td>
+            <?= $component['version'] ?>
+        </td>
+    </tr>
     <?php endforeach; ?>
-    </ul>
-
-</div>
-
-<div class="book-cover">
-    <?php if(strlen($this->bookCoverImage)!=0): ?>
-    <a href="<?= $firstLangCode . '/toc.html' ?>">
-        <img id="book-cover" alt="<?= $this->bookTitle ?>" src="<?= $this->bookCoverImage ?>">
-    </a>
-    <?php endif; ?>
-</div>
-    
-<div class="clear"></div>
+    </tbody>
+</table>

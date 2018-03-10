@@ -35,8 +35,8 @@ class Application
         // Generate the API documentation
         try {
             
-            $generator = new ApiDocGenerator();
-            $generator->generate($srcDir, $optVerbose);
+            $generator = new ApiDocGenerator($optVerbose);
+            $generator->generate($srcDir);
                 
         } catch (\Exception $ex) {
             echo "Error: " . $ex->getMessage() . "\n";

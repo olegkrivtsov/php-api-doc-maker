@@ -525,3 +525,33 @@ div.incomplete-translation {
         bottom: 30px;
     }
 }
+
+.file-tree {
+    font-size: 1.2em;
+    color: #aaaaaa;
+}
+
+.directory {
+    margin-left: 25px;
+}
+
+.directory .directory, .directory .file {
+    display: none;
+}
+
+.directory .dir-name {
+    cursor:pointer;
+    margin: 10px 0;
+    padding-left: 25px;
+    background-image: url(../images/folder.png);
+    background-repeat: no-repeat;
+    background-position: 5px 0px;
+}
+
+.file {
+    margin: 10px 0 10px 25px;
+    padding-left: 25px;
+    background-image: url(../images/file2.png);
+    background-repeat: no-repeat;
+    background-position: 5px 0px;
+}

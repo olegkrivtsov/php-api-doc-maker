@@ -1,24 +1,21 @@
 <!DOCTYPE html>
-<html lang="<?= $this->langCode ?>">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="description" content="<?= $this->bookSubtitle ?>">
+<meta name="description" content="<?= $this->title ?>">
 <meta name="keywords" content="<?= $this->keywords ?>">
 <meta name="author" content="<?= $this->copyright ?>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link href="<?= $this->dirPrefix ?>favicon.ico" rel="shortcut icon" type="image/ico" />
 <link href="<?= $this->dirPrefix ?>assets/css/style.css" type="text/css" rel="stylesheet" />
-<title><?= strlen($this->pageTitle)!=0?($this->pageTitle . ' -- ' . $this->bookTitle):($this->bookTitle . ' -- ' . $this->bookSubtitle); ?></title>
+<title><?= strlen($this->pageTitle)!=0?($this->pageTitle . ' -- ' . $this->title):($this->title); ?></title>
 </head>
 <body>
 <header>
     <div class="header">
         <div class="header-body">
             <div class="book-title">
-                <a href="<?= $this->dirPrefix ?>index.html"><?php echo $this->bookTitle; ?></a>
-            </div>
-            <div class="book-subtitle">
-                <?php echo $this->bookSubtitle; ?>
+                <a href="<?= $this->dirPrefix ?>index.html"><?php echo $this->title; ?></a>
             </div>
             <nav>
                 <div class="menu">
@@ -43,7 +40,7 @@
                 Copyright <?= $this->copyright ?>
             </div>
             <div class="generated-by">
-                Generated using <a href="https://github.com/olegkrivtsov/openbook">OpenBook</a>
+                Generated using <a href="https://github.com/olegkrivtsov/php-api-doc-maker">PHP API Doc Maker</a>
             </div>
         </div>    
     </div>
@@ -99,7 +96,7 @@ jQuery(document).ready(function($){
 });
 </script>
 
-<?php if ($this->bookProps['google_analytics']['enabled']): ?>
+<?php if ($this->projectProps['google_analytics']['enabled']): ?>
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
   (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
