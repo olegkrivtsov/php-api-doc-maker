@@ -183,7 +183,7 @@ class ApiDocGenerator
             $this->generateComponentHtml($componentInfo);
             
             foreach ($componentInfo['classes'] as $className=>$classInfo) {
-                $this->generateClassHtml($className, $classInfo);
+                $this->generateClassHtml($componentInfo['name'], $className, $classInfo);
             }
         }
     }
@@ -220,6 +220,10 @@ class ApiDocGenerator
     protected function generateComponentHtml($componentInfo)
     {
         $vars = [
+            'breadcrumbs' => [
+                'All Components' => '../../index.html',
+                $componentInfo['name'] => '../../components/' . $componentInfo['name'] . '.html',
+            ],
             'component' => $componentInfo,
             'projectProps' => $this->projectProps,
             'dirPrefix' => '../../',
@@ -243,11 +247,16 @@ class ApiDocGenerator
         array_unshift($this->siteUrls, [$this->projectProps['website'] . '/index.html', 1.0]);
     }
     
-    protected function generateClassHtml($className, $classInfo)
+    protected function generateClassHtml($componentName, $className, $classInfo)
     {
         $outFile = $this->outDir . 'classes/' . str_replace('\\', '/', $className) . '.html';
         
         $this->logger->log("Generating class HTML file: $outFile\n");
+        
+        if (!isset($classInfo['class']['type'])) {
+            $this->logger->log("No class info found; skipping.\n");
+            return;
+        }
         
         $nameParts = explode('\\', $className);
         
@@ -256,12 +265,19 @@ class ApiDocGenerator
         $dirPrefix = str_repeat('../', count($nameParts));
         
         $vars = [
+            'breadcrumbs' => [
+                'All Components' => $dirPrefix . 'index.html',
+                $componentName => $dirPrefix . 'components/' . $componentName . '.html',
+                'Class ' . $shortClassName => $dirPrefix . 'classes/' . str_replace('\\', '/', $className) . '.html', 
+            ],
             'className' => $shortClassName,
             'fullyQualifiedClassName' => $className,
             'classInfo' => $classInfo,
+            'fullMethods' => $this->classInfoExtractor->getFullClassMethodList($className),
             'projectProps' => $this->projectProps,
             'dirPrefix' => '../../',
         ];
+        
         
         $this->phpRenderer->clearVars();
         $content = $this->phpRenderer->render("data/theme/default/layout/class.php", $vars);

@@ -527,6 +527,7 @@ div.incomplete-translation {
 }
 
 .file-tree {
+    margin-left: -25px;
     font-size: 1.2em;
     color: #aaaaaa;
 }
@@ -554,4 +555,9 @@ div.incomplete-translation {
     background-image: url(../images/file2.png);
     background-repeat: no-repeat;
     background-position: 5px 0px;
+}
+
+.breadcrumbs a {
+    font-size: 1.2em;
+    color: green;
 }

@@ -1,10 +1,13 @@
 <!-- Navigation -->
-<div class="navigation">
-    <div class="contents">
-        <a href="<?= $this->langDirPrefix ?>toc.html">
-            <img alt="Contents" src="<?= $this->dirPrefix ?>assets/images/book.png"><span class="nav-btn-text">Contents</span>
-        </a>
-    </div>
+<div class="breadcrumbs">
+    <?php $i = 1; ?>
+    <?php foreach ($this->breadcrumbs as $name=>$url): ?>
+    <a href="<?= $url ?>"><?= $name ?></a>
+    <?php 
+    if ($i<count($this->breadcrumbs)) echo '&rarr;';
+    $i++;
+    ?>
+    <?php endforeach; ?>
 </div>
 
 <?php if ($this->projectProps['google_adsence']['enabled']): ?>
@@ -14,6 +17,8 @@
 <!-- Content -->
 <div id="chapter_content">
  
+    <p><?= $this->component['description']?></p>
+    
     <h1>Classes</h1>
     
 <div class="file-tree">
@@ -30,15 +35,6 @@
 </div>
 <?php endif; ?>
     
-<!-- Navigation -->
-<div class="navigation">
-    <div class="contents">
-        <a href="<?= $this->langDirPrefix ?>toc.html">
-            <img alt="Contents" src="<?= $this->dirPrefix ?>assets/images/book.png"><span class="nav-btn-text">Contents</span>
-        </a>
-    </div>
-</div>
-
 <div id="disqus_thread"></div>
 
 <?php

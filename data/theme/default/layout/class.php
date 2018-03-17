@@ -1,10 +1,13 @@
 <!-- Navigation -->
-<div class="navigation">
-    <div class="contents">
-        <a href="<?= $this->langDirPrefix ?>toc.html">
-            <img alt="Contents" src="<?= $this->dirPrefix ?>assets/images/book.png"><span class="nav-btn-text">Contents</span>
-        </a>
-    </div>
+<div class="breadcrumbs">
+    <?php $i = 1; ?>
+    <?php foreach ($this->breadcrumbs as $name=>$url): ?>
+    <a href="<?= $url ?>"><?= $name ?></a>
+    <?php 
+    if ($i<count($this->breadcrumbs)) echo '&rarr;';
+    $i++;
+    ?>
+    <?php endforeach; ?>
 </div>
 
 <?php if ($this->projectProps['google_adsence']['enabled']): ?>
@@ -54,6 +57,15 @@
     <?php endif; ?>
 </table>
 
+<h2>Description</h2>
+
+<div class="description">
+    <p>
+    <?= $this->classInfo['class']['summary'] ?>
+    </p>
+    <?= $this->classInfo['class']['description'] ?>
+</div>
+
 <?php if(count($this->classInfo['class']['properties'])!=0): ?>
 <h2 id="properties">Properties</h2>
 
@@ -65,29 +77,41 @@
     <?php foreach ($this->classInfo['class']['properties'] as $property): ?>
     <tr>
         <td>
+            <a href="#">
             <?= $property['name']?>()
+            </a>
         </td>
         <td>
+            <?= $property['summary']?>
         </td>
     </tr>
     <?php endforeach; ?>
 </table>
 <?php endif; ?>
 
-<?php if(count($this->classInfo['class']['methods'])!=0): ?>
+<?php if(count($this->fullMethods)!=0): ?>
 <h2 id="methods">Methods</h2>
 
 <table class="table">
     <tr>
         <th>Name</th>
         <th>Description</th>
+        <th>Defined By</th>
     </tr>
-    <?php foreach ($this->classInfo['class']['methods'] as $method): ?>
+    <?php foreach ($this->fullMethods as $method): ?>
     <tr>
         <td>
+            <a href="#">
             <?= $method['name']?>()
+            </a>
         </td>
         <td>
+            <?= $method['summary']?>
+        </td>
+        <td>
+            <a href="#">
+            <?= basename($method['defined_by']) ?>
+            </a>
         </td>
     </tr>
     <?php endforeach; ?>
@@ -104,15 +128,6 @@
 </div>
 <?php endif; ?>
     
-<!-- Navigation -->
-<div class="navigation">
-    <div class="contents">
-        <a href="<?= $this->langDirPrefix ?>toc.html">
-            <img alt="Contents" src="<?= $this->dirPrefix ?>assets/images/book.png"><span class="nav-btn-text">Contents</span>
-        </a>
-    </div>
-</div>
-
 <div id="disqus_thread"></div>
 
 <?php
