@@ -1,3 +1,7 @@
+<?php 
+use PhpApiDocMaker\Utils;
+?>
+
 <!-- Navigation -->
 <div class="breadcrumbs">
     <?php $i = 1; ?>
@@ -37,8 +41,13 @@
             Extends:
         </td>
         <td>
+            <?php $i=0; ?>
             <?php foreach ($this->classInfo['class']['extends'] as $parentClass): ?>
-            <?= $parentClass ?>,
+            <a href="<?= $this->dirPrefix ?><?= $parentClass ?>.html"><?= Utils::getShortClassName($parentClass) ?></a><?php 
+                if ($i<count($this->classInfo['class']['extends'])-1)
+                    echo ', ';
+                $i++;
+            ?>
             <?php endforeach; ?>
         </td>
     </tr>
@@ -49,8 +58,13 @@
             Implements:
         </td>
         <td>
+            <?php $i=0; ?>
             <?php foreach ($this->classInfo['class']['implements'] as $parentClass): ?>
-            <?= $parentClass ?>,
+            <a href="<?= $this->dirPrefix ?><?= $parentClass ?>.html"><?= Utils::getShortClassName($parentClass) ?></a><?php 
+                if ($i<count($this->classInfo['class']['implements'])-1)
+                    echo ', ';
+                $i++;
+            ?>
             <?php endforeach; ?>
         </td>
     </tr>
@@ -66,29 +80,6 @@
     <?= $this->classInfo['class']['description'] ?>
 </div>
 
-<?php if(count($this->classInfo['class']['properties'])!=0): ?>
-<h2 id="properties">Properties</h2>
-
-<table class="table">
-    <tr>
-        <th>Name</th>
-        <th>Description</th>
-    </tr>
-    <?php foreach ($this->classInfo['class']['properties'] as $property): ?>
-    <tr>
-        <td>
-            <a href="#">
-            <?= $property['name']?>()
-            </a>
-        </td>
-        <td>
-            <?= $property['summary']?>
-        </td>
-    </tr>
-    <?php endforeach; ?>
-</table>
-<?php endif; ?>
-
 <?php if(count($this->fullMethods)!=0): ?>
 <h2 id="methods">Methods</h2>
 
@@ -101,7 +92,7 @@
     <?php foreach ($this->fullMethods as $method): ?>
     <tr>
         <td>
-            <a href="#">
+            <a href="#<?= $method['name'] ?>()">
             <?= $method['name']?>()
             </a>
         </td>
@@ -109,13 +100,51 @@
             <?= $method['summary']?>
         </td>
         <td>
-            <a href="#">
-            <?= basename($method['defined_by']) ?>
+            <a href="<?= $this->dirPrefix ?><?= $method['defined_by'] ?>.html">
+            <?= Utils::getShortClassName($method['defined_by']) ?>
             </a>
         </td>
     </tr>
     <?php endforeach; ?>
 </table>
+
+<h2 id="method-details">Method Details</h2>
+
+<?php foreach ($this->fullMethods as $method): ?>
+
+<h3 id="<?= $method['name']?>()"><?= $method['name']?>()</h3>
+
+<p>
+<?= $method['summary'] ?>
+</p>
+
+<?= $method['description'] ?>
+
+<?php if (count($method['params'])!=0): ?>
+<table class="table">
+    <tr>
+        <th>Parameter Name</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <?php foreach ($method['params'] as $param): ?>
+    <tr>
+        <td>
+            <?= $param['name'] ?>
+        </td>
+        <td>
+            <?= $param['type'] ?>
+        </td>
+        <td>
+            <?= $param['description'] ?>
+        </td>
+    </tr>
+    <?php endforeach; ?>
+</table>
+<?php endif; ?>
+
+<?php endforeach; ?>
+
 <?php endif; ?>
 
 

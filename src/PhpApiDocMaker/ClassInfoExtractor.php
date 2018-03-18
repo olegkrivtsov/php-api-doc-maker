@@ -97,7 +97,10 @@ class ClassInfoExtractor
                 } else if ($node instanceof UseUse) {
                     
                     $className = implode('\\', $node->name->parts);
-                    $alias = $node->alias?$node->alias->name:$className;
+                    if ($node->alias)
+                        $alias = $node->alias->name;
+                    else
+                        $alias = Utils::getShortClassName($className);
                     $this->uses[$alias] = $className;
                     
                 } else if ($node instanceof Class_ || 
@@ -131,9 +134,16 @@ class ClassInfoExtractor
                         
                     }
                     
-                    if (isset($node->extends) && is_array($node->extends)) {
-                        foreach ($node->extends as $extends) {
-                            $inheritedClass = implode('\\', $extends->parts);
+                    if (isset($node->extends)) {
+                        
+                        $extends = [];
+                        if (!is_array($node->extends))
+                            $extends[] = $node->extends;
+                        else 
+                            $extends = $node->extends;
+                        
+                        foreach ($extends as $extendedClass) {
+                            $inheritedClass = implode('\\', $extendedClass->parts);
                             if (isset($this->uses[$inheritedClass]))
                                 $inheritedClass = $this->uses[$inheritedClass];
                             else 
@@ -142,9 +152,16 @@ class ClassInfoExtractor
                         }
                     }
 
-                    if (isset($node->implements) && is_array($node->implements)) {
-                        foreach ($node->implements as $implements) {
-                            $inheritedClass = implode('\\', $implements->parts);
+                    if (isset($node->implements)) {
+                        
+                        $implements = [];
+                        if (!is_array($node->implements))
+                            $implements[] = $node->implements;
+                        else 
+                            $implements = $node->implements;
+                        
+                        foreach ($implements as $implementedInterface) {
+                            $inheritedClass = implode('\\', $implementedInterface->parts);
                             if (isset($this->uses[$inheritedClass]))
                                 $inheritedClass = $this->uses[$inheritedClass];
                             else 
@@ -204,10 +221,13 @@ class ClassInfoExtractor
 
                                 $summary = '';
                                 $description = '';
+                                $params = [];
                                 try {
                                     $docblock = $factory->create((string)$classStmt->getDocComment());
                                     $summary = $docblock->getSummary();
                                     $description = $parser->parse($docblock->getDescription()->render());
+                                    
+                                    $params = $docblock->getTagsByName('param');
                                 }
                                 catch (\Exception $e) {
                                     
@@ -220,14 +240,43 @@ class ClassInfoExtractor
                                     'summary' => $summary,
                                     'description' => $description,
                                 ];
-
-                                foreach ($classStmt->params as $param) {
-                                    $methodInfo['params'][] = [
-                                        'var' => $param->var->name,
-
-                                    ];
+                                                                                               
+                                foreach ($params as $param) {
+                                    $param = (string)$param;
+                                
+                                    $paramParts = array_filter(explode(" ", $param));
+                                    
+                                    $paramType = '';
+                                    $paramName = '';
+                                    $paramDesc = '';
+                                    
+                                    if (isset($paramParts[0]))
+                                        $paramType = $paramParts[0];
+                                    
+                                    if (isset($paramParts[1]))
+                                        $paramName = $paramParts[1];
+                                    
+                                    if (isset($paramParts[2]))
+                                        $paramDesc = $paramParts[2];
+                                    
+                                    $methodInfo['params'][$paramName] = [
+                                        'type' => $paramType,
+                                        'name' => $paramName,
+                                        'description' => $paramDesc
+                                        ];
                                 }
-
+                  
+                                foreach ($classStmt->params as $param) {
+                                    $paramName = '$'.$param->var->name;
+                                    $methodInfo['params'][$paramName]['name'] = $paramName;
+                                    
+                                    if (!isset($methodInfo['params'][$paramName]['type']))
+                                        $methodInfo['params'][$paramName]['type'] = '';
+                                    
+                                    if (!isset($methodInfo['params'][$paramName]['description']))
+                                        $methodInfo['params'][$paramName]['description'] = '';
+                                }
+                                
                                 $classInfo['methods'][] = $methodInfo;
                             }
                         }
@@ -247,13 +296,20 @@ class ClassInfoExtractor
         $info['class'] = $visitor->class;
 
         // Add class info to the class index
-        $this->classIndex[$info['class']['name']] = $info;
+        if (isset($info['class']['name'])) {
+            $this->classIndex[$info['class']['name']] = $info;
+        }
         
         return $info;
     }
     
-    public function getFullExtends($className)
+    public function getFullExtends($className, &$usedNames = [])
     {
+        if (isset($usedNames[$className]))
+            return []; // Avoid infinite recursion.
+        
+        $usedNames[$className] = $className;
+        
         if (!isset($this->classIndex[$className])) 
             return [];
         
@@ -263,18 +319,25 @@ class ClassInfoExtractor
         
         foreach ($classInfo['class']['extends'] as $extends) {
             
-            $parentExtends = $this->getFullExtends($extends);
+            $fullExtends[] = $extends;
+            
+            $parentExtends = $this->getFullExtends($extends, $usedNames);
             
             foreach ($parentExtends as $extends2) {
-                $fullExtends[] = $extends2;
+                array_unshift($fullExtends, $extends2);
             }
         }
         
         return $fullExtends;
     }
     
-    public function getFullImplements($className)
+    public function getFullImplements($className, &$usedNames = [])
     {
+        if (isset($usedNames[$className]))
+            return []; // Avoid infinite recursion.
+        
+        $usedNames[$className] = $className;
+        
         if (!isset($this->classIndex[$className])) 
             return [];
         
@@ -284,7 +347,9 @@ class ClassInfoExtractor
         
         foreach ($classInfo['class']['implements'] as $implements) {
             
-            $parentImplements = $this->getFullImplements($implements);
+            $fullImplements[] = $implements;
+            
+            $parentImplements = $this->getFullImplements($implements, $usedNames);
             
             foreach ($parentImplements as $implements2) {
                 $fullImplements[] = $implements2;
@@ -306,20 +371,26 @@ class ClassInfoExtractor
         $extends = $this->getFullExtends($className);
         
         foreach ($extends as $inheritedClass) {
+            
+            if (!isset($this->classIndex[$inheritedClass]))
+                continue;
+            
             $parentClassInfo = $this->classIndex[$inheritedClass];
         
             $inheritedMethods = $parentClassInfo['class']['methods'];
             
             foreach ($inheritedMethods as $inheritedMethod) {
                 $inheritedMethod['defined_by'] = $inheritedClass;
-                $methods[] = $inheritedMethod;
+                $methods[$inheritedMethod['name']] = $inheritedMethod;
             }
         }
         
         foreach ($classInfo['class']['methods'] as $ownMethod) {
                 $ownMethod['defined_by'] = $className;
-                $methods[] = $ownMethod;
+                $methods[$ownMethod['name']] = $ownMethod;
         }
+        
+        ksort($methods);
         
         return $methods;
     }

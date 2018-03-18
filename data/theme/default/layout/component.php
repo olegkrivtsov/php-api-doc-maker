@@ -11,6 +11,7 @@
 </div>
 
 <?php if ($this->projectProps['google_adsence']['enabled']): ?>
+<!-- Ads -->
 <?= $this->upperAdContent ?>
 <?php endif; ?>
 
@@ -25,15 +26,6 @@
 <?php echo $this->component['file_tree']; ?>
 </div>
 </div>
-
-<?php if ($this->projectProps['google_adsence']['enabled']): ?>
-<!-- Ads -->
-<div id="ads-chapter-bottom">
-<div>
-<?= $this->lowerAdContent ?>
-</div>
-</div>
-<?php endif; ?>
     
 <div id="disqus_thread"></div>
 

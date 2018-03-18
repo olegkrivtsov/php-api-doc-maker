@@ -180,8 +180,12 @@ class ApiDocGenerator
             
             $this->components[$componentInfo['name']] = $componentInfo;
             
-            $this->generateComponentHtml($componentInfo);
-            
+            // Generate an HTML file per each component.
+            $this->generateComponentHtml($componentInfo);                        
+        }
+        
+        // Generate HTML file per each extracted class.
+        foreach ($this->components as $componentInfo) {
             foreach ($componentInfo['classes'] as $className=>$classInfo) {
                 $this->generateClassHtml($componentInfo['name'], $className, $classInfo);
             }
@@ -219,6 +223,12 @@ class ApiDocGenerator
      */
     protected function generateComponentHtml($componentInfo)
     {
+        $upperAdContent = null;
+        if ($this->projectProps['google_adsence']['enabled']==true) {            
+            if (is_readable($this->srcDir . $this->projectProps['google_adsence']['upper_ad'])) 
+                $upperAdContent = file_get_contents($this->srcDir . $this->projectProps['google_adsence']['upper_ad']);
+        }
+        
         $vars = [
             'breadcrumbs' => [
                 'All Components' => '../../index.html',
@@ -227,6 +237,7 @@ class ApiDocGenerator
             'component' => $componentInfo,
             'projectProps' => $this->projectProps,
             'dirPrefix' => '../../',
+            'upperAdContent' => $upperAdContent,
         ];
         
         $this->phpRenderer->clearVars();
@@ -249,6 +260,12 @@ class ApiDocGenerator
     
     protected function generateClassHtml($componentName, $className, $classInfo)
     {
+        $upperAdContent = null;
+        if ($this->projectProps['google_adsence']['enabled']==true) {            
+            if (is_readable($this->srcDir . $this->projectProps['google_adsence']['upper_ad'])) 
+                $upperAdContent = file_get_contents($this->srcDir . $this->projectProps['google_adsence']['upper_ad']);
+        }
+        
         $outFile = $this->outDir . 'classes/' . str_replace('\\', '/', $className) . '.html';
         
         $this->logger->log("Generating class HTML file: $outFile\n");
@@ -276,8 +293,8 @@ class ApiDocGenerator
             'fullMethods' => $this->classInfoExtractor->getFullClassMethodList($className),
             'projectProps' => $this->projectProps,
             'dirPrefix' => '../../',
+            'upperAdContent' => $upperAdContent,
         ];
-        
         
         $this->phpRenderer->clearVars();
         $content = $this->phpRenderer->render("data/theme/default/layout/class.php", $vars);
@@ -290,7 +307,7 @@ class ApiDocGenerator
         
         file_put_contents($outFile, $html);
         
-        array_unshift($this->siteUrls, [$this->projectProps['website'] . 'index.html', 1.0]);
+        array_unshift($this->siteUrls, [$this->projectProps['website'] . '/classes/' . str_replace('\\', '/', $className) . '.html', 1.0]);
     }
     
     /**
