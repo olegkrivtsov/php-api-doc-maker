@@ -19,7 +19,7 @@ php composer.phar update
 
 Assume you would like to generate the API reference of some library consisting of components. Let's take a real-life example (Zend Framework 3 API reference): https://github.com/olegkrivtsov/zf3-api-reference
 
-Create a directory, for example, `zf3-api-doc-reference`.
+Create a directory, for example, `zf3-api-reference`.
 
 Inside that directory, install all components you need with `composer require <component-name>`.
 
@@ -86,8 +86,8 @@ The most important part is the `components` subkey where you should list the com
 
 When this is ready, generate the API reference with the command:
 
-`php php-api-doc-maker.php /path/to/zf3-api-doc-reference`.
+`php php-api-doc-maker.php /path/to/zf3-api-reference`.
 
-If everything is OK, you should find the HTML files inside the `/path/to/zf3-api-doc-reference/html` directory.
+If everything is OK, you should find the HTML files inside the `/path/to/zf3-api-reference/html` directory.
 
 That's all, enjoy!
