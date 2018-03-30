@@ -43,7 +43,7 @@ use PhpApiDocMaker\Utils;
         <td>
             <?php $i=0; ?>
             <?php foreach ($this->classInfo['class']['extends'] as $parentClass): ?>
-            <a href="<?= $this->dirPrefix ?><?= $parentClass ?>.html"><?= Utils::getShortClassName($parentClass) ?></a><?php 
+            <a href="<?= $this->classDirPrefix ?><?= $parentClass ?>.html"><?= Utils::getShortClassName($parentClass) ?></a><?php 
                 if ($i<count($this->classInfo['class']['extends'])-1)
                     echo ', ';
                 $i++;
@@ -60,7 +60,7 @@ use PhpApiDocMaker\Utils;
         <td>
             <?php $i=0; ?>
             <?php foreach ($this->classInfo['class']['implements'] as $parentClass): ?>
-            <a href="<?= $this->dirPrefix ?><?= $parentClass ?>.html"><?= Utils::getShortClassName($parentClass) ?></a><?php 
+            <a href="<?= $this->classDirPrefix ?><?= $parentClass ?>.html"><?= Utils::getShortClassName($parentClass) ?></a><?php 
                 if ($i<count($this->classInfo['class']['implements'])-1)
                     echo ', ';
                 $i++;
@@ -100,7 +100,7 @@ use PhpApiDocMaker\Utils;
             <?= $method['summary']?>
         </td>
         <td>
-            <a href="<?= $this->dirPrefix ?><?= $method['defined_by'] ?>.html">
+            <a href="<?= $this->classDirPrefix ?><?= $method['defined_by'] ?>.html">
             <?= Utils::getShortClassName($method['defined_by']) ?>
             </a>
         </td>
@@ -143,10 +143,11 @@ use PhpApiDocMaker\Utils;
 </table>
 <?php endif; ?>
 
+<p>Returns: <?= $method['return'] ?></p>
+
 <?php endforeach; ?>
 
 <?php endif; ?>
-
 
 <?php if ($this->projectProps['google_adsence']['enabled']): ?>
 <!-- Ads -->

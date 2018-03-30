@@ -557,6 +557,10 @@ div.incomplete-translation {
     background-position: 5px 0px;
 }
 
+.breadcrumbs {
+    margin: 0.6em 0;
+}
+
 .breadcrumbs a {
     font-size: 1.2em;
     color: green;

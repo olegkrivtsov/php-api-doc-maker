@@ -7,5 +7,9 @@ require __DIR__ . '/vendor/autoload.php';
  */
 chdir(__DIR__);
 
+// This is needed by PHP parser because it can reach the default nesting level of 256 and
+// cause error.
+ini_set('xdebug.max_nesting_level', 3000);
+
 $app = new PhpApiDocMaker\Application();
 return $app->run($argc, $argv);

@@ -222,10 +222,16 @@ class ClassInfoExtractor
                                 $summary = '';
                                 $description = '';
                                 $params = [];
+                                $return = 'void';
                                 try {
                                     $docblock = $factory->create((string)$classStmt->getDocComment());
                                     $summary = $docblock->getSummary();
                                     $description = $parser->parse($docblock->getDescription()->render());
+                                    $return = $docblock->getTagsByName('return');
+                                    if (is_array($return))
+                                        $return = (string)array_shift($return);
+                                    else
+                                        $return = 'void';
                                     
                                     $params = $docblock->getTagsByName('param');
                                 }
@@ -239,6 +245,7 @@ class ClassInfoExtractor
                                     'params' => [],
                                     'summary' => $summary,
                                     'description' => $description,
+                                    'return' => $return,
                                 ];
                                                                                                
                                 foreach ($params as $param) {

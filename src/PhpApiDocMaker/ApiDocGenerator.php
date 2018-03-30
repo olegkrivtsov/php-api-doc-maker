@@ -255,7 +255,9 @@ class ApiDocGenerator
         
         file_put_contents($outFile, $html);
         
-        array_unshift($this->siteUrls, [$this->projectProps['website'] . '/index.html', 1.0]);
+        $this->classIndex[$componentInfo['namespace']] = $this->projectProps['website'] . "/components/" . $componentInfo['name'] . ".html";
+        
+        array_unshift($this->siteUrls, [$this->projectProps['website'] . "/components/" . $componentInfo['name'] . ".html", 1.0]);
     }
     
     protected function generateClassHtml($componentName, $className, $classInfo)
@@ -293,6 +295,7 @@ class ApiDocGenerator
             'fullMethods' => $this->classInfoExtractor->getFullClassMethodList($className),
             'projectProps' => $this->projectProps,
             'dirPrefix' => '../../',
+            'classDirPrefix' => $dirPrefix . 'classes/',
             'upperAdContent' => $upperAdContent,
         ];
         
@@ -306,6 +309,20 @@ class ApiDocGenerator
         }
         
         file_put_contents($outFile, $html);
+        
+        $classUrl = $this->projectProps['website'] . '/classes/' . str_replace('\\', '/', $className) . '.html';
+        
+        if (isset($this->classIndex[$shortClassName]))
+        {
+            if (!is_array($this->classIndex[$shortClassName]))
+                $this->classIndex[$shortClassName] = [$this->classIndex[$shortClassName], $classUrl];
+            else
+                $this->classIndex[$shortClassName][] = $classUrl; 
+        } else {
+            $this->classIndex[$shortClassName] = $classUrl;
+        }
+                
+        $this->classIndex[$className] = $classUrl;
         
         array_unshift($this->siteUrls, [$this->projectProps['website'] . '/classes/' . str_replace('\\', '/', $className) . '.html', 1.0]);
     }
@@ -347,6 +364,8 @@ class ApiDocGenerator
         
         $siteMapGenerator->createSitemap();
         $siteMapGenerator->writeSitemap();
+        
+        file_put_contents($this->outDir . 'class-index.json', json_encode($this->classIndex, JSON_PRETTY_PRINT));
     }
     
     /**
