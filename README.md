@@ -97,7 +97,7 @@ The most important part is the `components` subkey where you should list the com
 
 When this is ready, generate the API reference with the command:
 
-`php php-api-doc-maker.php /path/to/zf3-api-reference`.
+`php php-api-doc-maker.php /path/to/zf3-api-reference`
 
 If everything is OK, you should find the HTML files inside the `/path/to/zf3-api-reference/html` directory.
 
