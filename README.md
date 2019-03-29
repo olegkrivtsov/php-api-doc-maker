@@ -1,6 +1,6 @@
 # PHP API Documentation Maker
 
-This tool is an API documentation generator for any PHP library or framework consisting of Composer-compatible components. The tool scans the `composer.json` and `*.php` class files of each component you specify and produces a nice looking static HTML documentation which you host anywhere (even on GitHub pages).
+This tool is an API documentation generator for any PHP library or framework consisting of Composer-compatible components. The tool scans the `composer.json` and `*.php` class files of each component you specify and produces a nice looking static HTML documentation which you can host anywhere (on a cheap hosting or even on GitHub pages).
 
 ## Background
 
