@@ -1,12 +1,23 @@
 # PHP API Documentation Maker
 
-A simple yet powerful PHP API documentation generator.
+This tool is an API documentation generator for any PHP library or framework consisting of Composer-compatible components. The tool scans the `composer.json` and `*.php` class files of each component you specify and produces a nice looking static HTML documentation which you host anywhere (even on GitHub pages).
 
-## Prerequisites
+## Background
 
-First of all, you need PHP 5.6 or later to run this tool.
+I wrote this tool to generate the [API reference](https://github.com/olegkrivtsov/zf3-api-reference) for Zend Framework 3. 
+
+## Features:
+ 
+ * Runs from command line.
+ * Highly configurable - you can idenfity which components you want to document, skipping all others.
+ * Generates HTML5 static documentation viewable on any-sized screen. Take a look [here](https://olegkrivtsov.github.io/zf3-api-reference/html/) for an example.
+ * Embed a Google Analytics tag to track visitors of the site.
+ * Embed Google Adsense Ads to get revenue from visitors of the site.
+ * Embed a Disqus thread if you want to enable visitors to leave comments on the site.
 
 ## Installation
+
+You need PHP 5.6 or later to run this tool.
 
 Clone or download the source code of this tool to some directory, then install dependencies:
 
