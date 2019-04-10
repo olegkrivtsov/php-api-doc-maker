@@ -18,7 +18,9 @@
 <!-- Content -->
 <div id="chapter_content">
  
-    <p><?= $this->component['description']?></p>
+    <p>Version: <?= $this->escapeHtml($this->component['version']) ?></p>
+    
+    <p><?= $this->escapeHtml($this->component['description']) ?></p>
     
     <h1>Classes</h1>
     

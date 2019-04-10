@@ -12,15 +12,15 @@
     <?php foreach ($this->components as $component): ?>
     <tr>
         <td>
-            <a href="components/<?= $component['name'].'.html' ?>">
-                <?= $component['namespace'] ?>
+            <a href="components/<?=$component['name'].'.html' ?>">
+                <?= $this->escapeHtml($component['namespace']) ?>
             </a>
         </td>
         <td>
-            <?= $component['description'] ?>
+            <?= $this->escapeHtml($component['description']) ?>
         </td>
         <td>
-            <?= $component['version'] ?>
+            <?= $this->escapeHtml($component['version']) ?>
         </td>
     </tr>
     <?php endforeach; ?>

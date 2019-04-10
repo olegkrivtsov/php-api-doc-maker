@@ -6,7 +6,7 @@ use PhpApiDocMaker\Utils;
 <div class="breadcrumbs">
     <?php $i = 1; ?>
     <?php foreach ($this->breadcrumbs as $name=>$url): ?>
-    <a href="<?= $url ?>"><?= $name ?></a>
+    <a href="<?= $url ?>"><?= $this->escapeHtml($name) ?></a>
     <?php 
     if ($i<count($this->breadcrumbs)) echo '&rarr;';
     $i++;
@@ -21,7 +21,7 @@ use PhpApiDocMaker\Utils;
 <!-- Content -->
 <div id="chapter_content">
     <h1><?php if($this->classInfo['class']['type']=='class') echo 'Class'; else echo 'Interface'; ?> 
-        <?php echo $this->className; ?></h1>        
+        <?php echo $this->escapeHtml($this->className); ?></h1>        
 </div>
 
 <h2 id="inheritance">Summary</h2>
@@ -32,7 +32,7 @@ use PhpApiDocMaker\Utils;
             Fully Qualified Name:
         </td>
         <td>
-            <?= $this->fullyQualifiedClassName ?>
+            <?= $this->escapeHtml($this->fullyQualifiedClassName) ?>
         </td>
     </tr>
     <?php if (count($this->classInfo['class']['extends'])!=0): ?>
@@ -43,7 +43,7 @@ use PhpApiDocMaker\Utils;
         <td>
             <?php $i=0; ?>
             <?php foreach ($this->classInfo['class']['extends'] as $parentClass): ?>
-            <a href="<?= $this->classDirPrefix ?><?= $parentClass ?>.html"><?= Utils::getShortClassName($parentClass) ?></a><?php 
+            <a href="<?= $this->classDirPrefix ?><?= $parentClass ?>.html"><?= $this->escapeHtml(Utils::getShortClassName($parentClass)) ?></a><?php 
                 if ($i<count($this->classInfo['class']['extends'])-1)
                     echo ', ';
                 $i++;
@@ -60,7 +60,7 @@ use PhpApiDocMaker\Utils;
         <td>
             <?php $i=0; ?>
             <?php foreach ($this->classInfo['class']['implements'] as $parentClass): ?>
-            <a href="<?= $this->classDirPrefix ?><?= $parentClass ?>.html"><?= Utils::getShortClassName($parentClass) ?></a><?php 
+            <a href="<?= $this->classDirPrefix ?><?= $parentClass ?>.html"><?= $this->escapeHtml(Utils::getShortClassName($parentClass)) ?></a><?php 
                 if ($i<count($this->classInfo['class']['implements'])-1)
                     echo ', ';
                 $i++;
@@ -93,7 +93,7 @@ use PhpApiDocMaker\Utils;
     <tr>
         <td>
             <a href="#<?= $method['name'] ?>()">
-            <?= $method['name']?>()
+            <?= $this->escapeHtml($method['name']) ?>()
             </a>
         </td>
         <td>
@@ -101,7 +101,7 @@ use PhpApiDocMaker\Utils;
         </td>
         <td>
             <a href="<?= $this->classDirPrefix ?><?= $method['defined_by'] ?>.html">
-            <?= Utils::getShortClassName($method['defined_by']) ?>
+            <?= $this->escapeHtml(Utils::getShortClassName($method['defined_by'])) ?>
             </a>
         </td>
     </tr>
@@ -112,7 +112,7 @@ use PhpApiDocMaker\Utils;
 
 <?php foreach ($this->fullMethods as $method): ?>
 
-<h3 id="<?= $method['name']?>()"><?= $method['name']?>()</h3>
+<h3 id="<?= $method['name']?>()"><?= $this->escapeHtml($method['name']) ?>()</h3>
 
 <p>
 <?= $method['summary'] ?>
@@ -130,20 +130,20 @@ use PhpApiDocMaker\Utils;
     <?php foreach ($method['params'] as $param): ?>
     <tr>
         <td>
-            <?= $param['name'] ?>
+            <?= $this->escapeHtml($param['name']) ?>
         </td>
         <td>
-            <?= $param['type'] ?>
+            <?= $this->escapeHtml($param['type']) ?>
         </td>
         <td>
-            <?= $param['description'] ?>
+            <?= $this->escapeHtml($param['description']) ?>
         </td>
     </tr>
     <?php endforeach; ?>
 </table>
 <?php endif; ?>
 
-<p>Returns: <?= $method['return'] ?></p>
+<p>Returns: <?= $this->escapeHtml($method['return']) ?></p>
 
 <?php endforeach; ?>
 

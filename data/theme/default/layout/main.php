@@ -8,20 +8,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link href="<?= $this->dirPrefix ?>favicon.ico" rel="shortcut icon" type="image/ico" />
 <link href="<?= $this->dirPrefix ?>assets/css/style.css" type="text/css" rel="stylesheet" />
-<title><?= strlen($this->pageTitle)!=0?($this->pageTitle . ' &ndash; ' . $this->title):($this->title); ?></title>
+<title><?= strlen($this->pageTitle)!=0?($this->escapeHtml($this->pageTitle) . ' &ndash; ' . $this->escapeHtml($this->title)):($this->escapeHtml($this->title)); ?></title>
 </head>
 <body>
 <header>
     <div class="header">
         <div class="header-body">
             <div class="book-title">
-                <a href="<?= $this->dirPrefix ?>index.html"><?php echo $this->title; ?></a>
+                <a href="<?= $this->dirPrefix ?>index.html"><?= $this->escapeHtml($this->title); ?></a>
             </div>
             <nav>
                 <div class="menu">
                     <?php foreach ($this->links as $linkText=>$linkUrl): ?>
                     <div class="link">
-                        <a href="<?= $linkUrl ?>"><?= $linkText ?></a>
+                        <a href="<?= $linkUrl ?>"><?= $this->escapeHtml($linkText) ?></a>
                     </div>
                     <?php endforeach; ?>
 

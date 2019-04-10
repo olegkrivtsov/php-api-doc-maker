@@ -377,6 +377,10 @@ class ApiDocGenerator
         
         $count = 0;
         foreach ($this->filesToCopy as $srcFile=>$dstFile) {
+            
+            $srcFile = str_replace('//', '/', $srcFile);
+            $dstFile = str_replace('//', '/', $dstFile);
+            
             if(!is_dir(dirname($dstFile)))
                 mkdir(dirname($dstFile), 0775, true);
             if(!is_readable($srcFile)) {

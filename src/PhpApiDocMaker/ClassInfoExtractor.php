@@ -49,6 +49,8 @@ class ClassInfoExtractor
         
         foreach ($files as $file) {
         
+            $file = str_replace('//', '/', $file);
+            
             $this->logger->log("Parsing PHP file: $file" . "\n");
             
             $classInfo = $this->getClassInfoFromFile($file);
