@@ -26,6 +26,16 @@ php composer.phar self-update
 php composer.phar update
 ```
 
+Now you should be able to run the `php-api-doc-maker.php` script as follows:
+
+```
+php php-api-doc-maker.php [options] <src_dir>
+```
+
+where the only available options for now is `-v` (verbose output). 
+
+The `src_dir` is the directory where your `php-api-doc-maker.json` configuration file is located (see below).
+
 ## Generating the API Reference
 
 Assume you would like to generate the API reference of some library consisting of components. Let's take a real-life example (Zend Framework 3 API reference): https://github.com/olegkrivtsov/zf3-api-reference
